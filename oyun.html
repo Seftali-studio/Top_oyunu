@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adım Adım Oyun Kodlama</title>
+    <style>
+        /* Sadece oyun alanının görünümünü belirliyoruz */
+        canvas { 
+            background: skyblue; /* Gökyüzü rengi */
+            display: block; 
+            margin: 20px auto; 
+            border: 5px solid #555; 
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="oyunEkrani" width="400" height="400"></canvas>
+
+<script>
+    // 2. ADIM: Bilgisayara bu tuval üzerine çizim yapacağımızı söylüyoruz
+    const tuval = document.getElementById("oyunEkrani");
+    const kalem = tuval.getContext("2d");
+
+    // 3. ADIM: Oyunun kahramanlarını (Top ve Raket) tanımlıyoruz
+    // Bunlar değişkenlerdir, çünkü oyun boyunca konumları sürekli değişecek
+    let topX = 50;        // Topun sağa-sola konumu (0=en sol)
+    let topY = 50;        // Topun yukarı-aşağı konumu (0=en üst)
+    let topHiziX = 3;     // Top her seferinde kaç piksel sağa gitsin?
+    let topHiziY = 3;     // Top her seferinde kaç piksel aşağı gitsin?
+    
+    let raketX = 150;     // Raketin yatay konumu
+    let raketGenislik = 80;
+
+    // 4. ADIM: Oyuncunun hareketini takip ediyoruz
+    // Fareyi oynattığımızda bu fonksiyon çalışır
+    document.addEventListener("mousemove", (olay) => {
+        // Fare koordinatını alıp raketin yeni konumu yapıyoruz
+        raketX = olay.clientX - tuval.offsetLeft - (raketGenislik / 2);
+    });
+
+    // 5. ADIM: ANA MOTOR (Oyunun sürekli çalışmasını sağlayan bölüm)
+    function oyunBaslasin() {
+        
+        // Önceki kareden kalan her şeyi sileriz, yoksa top arkasında iz bırakır (boya gibi)
+        kalem.clearRect(0, 0, tuval.width, tuval.height);
+
+        // --- TOPU ÇİZELİM ---
+        kalem.fillStyle = "green"; // Boya rengini seç
+        kalem.beginPath();
+        kalem.arc(topX, topY, 15, 0, Math.PI * 2); // Daire çiz (X, Y, Yarıçap)
+        kalem.fill();
+
+        // --- RAKETİ ÇİZELİM ---
+        kalem.fillStyle = "brightgreen";
+        // ffillRect(X konumu, Y konumu, Genişlik, Yükseklik)
+        kalem.fillRect(raketX, 370, raketGenislik, 10); 
+
+        // --- HAREKET ETTİRELİM ---
+        // Topun mevcut konumuna hızını ekliyoruz
+        topX = topX + topHiziX;
+        topY = topY + topHiziY;
+
+        // --- DUVARDAN SEKME MANTIĞI ---
+        // Eğer top sağa (400) veya sola (0) çarparsa yönünü tersine çevir
+        if (topX > 400 || topX < 0) {
+            topHiziX = topHiziX * -1; // -1 ile çarpmak yönü tersine çevirir
+        }
+
+        // Eğer top tavana çarparsa
+        if (topY < 0) {
+            topHiziY = topHiziY * -1;
+        }
+
+        // --- RAKETE ÇARPMA ANI (EN ÖNEMLİ KISIM) ---
+        // 1. Top raketin yüksekliğine geldi mi? (topY > 360)
+        // 2. Top yatayda raketin sol ucu ile sağ ucu arasında mı?
+        if (topY > 360 && topX > raketX && topX < raketX + raketGenislik) {
+            topHiziY = topHiziY * -1; // Topu yukarı sektir
+        }
+
+        // --- YERE DÜŞME (OYUN BİTTİ) ---
+        if (topY > 400) {
+            alert("EYVAH! Top yere düştü.");
+            // Oyunu sıfırla
+            topX = 20; topY = 20;
+        }
+
+        // Bilgisayara "Bir sonraki kareyi çizmeye hazır ol" diyoruz
+        requestAnimationFrame(oyunBaslasin);
+    }
+
+    // Her şeyi başlat!
+    oyunBaslasin();
+
+</script>
+</body>
+</html>
